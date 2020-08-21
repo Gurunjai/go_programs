@@ -7,17 +7,25 @@ import (
 	"time"
 )
 
-func readFromUpstream(w http.ResponseWriter, r http.Request) {
-	resp, err := http.Get(r.URL.Path)
+func readFromUpstream(w http.ResponseWriter, r *http.Request) {
+	url := "http://gopl.io"
+	resp, err := http.Get(url)
 	if err != nil {
-		log.Printf("Error in schedulig http GET: %v\n", err)
+		log.Fatalf("Error in schedulig http GET: %v\n", err)
 		return
 	}
+	defer resp.Body.Close()
 
 	st := time.Now()
 	n, err := io.Copy(w, resp.Body)
 	if err != nil {
-		log.Printf("Error in reading from response: %v\n", err)
+		log.Fatalf("Error in reading from response: %v\n", err)
 	}
 	log.Printf("Wrote %v bytes in %.2f seconds\n", n, time.Since(st).Seconds())
+}
+
+func main() {
+	http.HandleFunc("/", readFromUpstream)
+
+	http.ListenAndServe(":8080", nil)
 }
